@@ -1,6 +1,6 @@
 # restore-symbol
 
-* Update: `20231206`
+* Update: `20260127`
 
 Forked from [HeiTanBc/restore-symbol](https://github.com/HeiTanBc/restore-symbol), do many furture optimization, to facilicate restore symbols for iOS Mach-O file
 
@@ -95,6 +95,12 @@ download from [releases](https://github.com/crifan/restore-symbol/releases/) (th
     ```bash
     restore-symbol -w true -s false -j {exported_IDA_symbols.json} -o {outputFile_RestoredSymbol} {inputMachOFile}
     ```
+    * Note
+      * `-w true` == Overwrite output file if existed
+      * `-s false` == **Not** Scan objc symbols, for previous step `ida_search_block.py`'s `enableWriteback = True` already scan and write back the objc symbols into mach-o binary == mach-o binary alread contains objc symbols
+      * `-j {exported_IDA_symbols.json}` == json file, which contain all (objc + renamed functions) symbols
+      * `-o {outputFile_RestoredSymbol}` == output file
+      * `{inputMachOFile}` == input mach-o file
   * Example
     * WhatsApp
       ```bash
