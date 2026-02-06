@@ -1,6 +1,6 @@
 # Function: IDA script plugin, export (Functions, Names) symbol from IDA (for Mach-O format)
 # Author: Crifan Li
-# Update: 20241211
+# Update: 20260206
 
 # import idc
 # import sys
@@ -15,6 +15,7 @@ import idautils
 import idc
 import idaapi
 # from idaapi import PluginForm
+import ida_loader
 import ida_nalt
 import ida_segment
 import operator
@@ -122,7 +123,7 @@ def isObjcFunctionName(funcName):
     "sub_10004C6D8" -> False
     "protocol witness for RawRepresentable.init(rawValue:) in conformance UIFont.FontWeight" -> True
   """
-  isMatchObjcFuncName = re.match("^[\-\+]\[\w+ [\w\.\:]+\]\w*$", funcName)
+  isMatchObjcFuncName = re.match(r"^[\-\+]\[\w+ [\w\.\:]+\]\w*$", funcName)
   isObjcFuncName = bool(isMatchObjcFuncName)
   # print("funcName=%s -> isObjcFuncName=%s" % (funcName, isObjcFuncName))
   return isObjcFuncName
@@ -339,22 +340,24 @@ def ida_getCurrentFolder():
       -> /Users/crifan/dev/dev_root/iosReverse/WhatsApp/ipa/Payload/WhatsApp.app/Frameworks/SharedModules.framework
   """
   curFolder = None
+  
+  # 尝试 1: 获取 IDA 记录的输入文件路径
   inputFileFullPath = ida_nalt.get_input_file_path()
-  # print("inputFileFullPath=%s" % inputFileFullPath)
-  if inputFileFullPath.startswith("/var/containers/Bundle/Application"):
-    # inputFileFullPath=/var/containers/Bundle/Application/2BE964D4-8DF0-4858-A06D-66CA8741ACDC/WhatsApp.app/WhatsApp
-    # -> maybe IDA bug -> after debug settings, output iOS device path, but later no authority to write exported file to it
-    # so need to avoid this case, change to output to PC side (Mac) current folder
-    curFolder = "."
-  else:
-    curFolder = os.path.dirname(inputFileFullPath)
-  # print("curFolder=%s" % curFolder)
+  
+  # 检查该路径是否真的存在
+  if inputFileFullPath and os.path.exists(inputFileFullPath):
+    # 路径存在，且不是 iOS 设备路径 (/var/containers...)
+    if not inputFileFullPath.startswith("/var/containers/Bundle/Application"):
+      curFolder = os.path.dirname(inputFileFullPath)
 
-  # debugInputPath = ida_nalt.dbg_get_input_path()
-  # print("debugInputPath=%s" % debugInputPath)
+  # 尝试 2: 如果上面的路径不存在（文件夹改名了）或者不合法，使用 IDB 文件的路径
+  if not curFolder:
+    print("Input file path invalid or not found. Fallback to IDB path.")
+    idb_full_path = ida_loader.get_path(ida_loader.PATH_TYPE_IDB)
+    curFolder = os.path.dirname(idb_full_path)
 
   curFolder = os.path.abspath(curFolder)
-  # print("curFolder=%s" % curFolder)
+  print("Final curFolder=%s" % curFolder)
   # here work:
   # . -> /Users/crifan/dev/dev_root/iosReverse/WhatsApp/ipa/Payload/WhatsApp.app
   return curFolder
