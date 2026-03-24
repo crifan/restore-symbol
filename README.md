@@ -1,6 +1,6 @@
 # restore-symbol
 
-* Update: `20260127`
+* Update: `20260324`
 
 Forked from [HeiTanBc/restore-symbol](https://github.com/HeiTanBc/restore-symbol), do many furture optimization, to facilicate restore symbols for iOS Mach-O file
 
@@ -46,7 +46,7 @@ download from [releases](https://github.com/crifan/restore-symbol/releases/) (th
 * Summary
   * for anyone: have `IDA Pro`
     * (1) `ida_search_block.py`: scan and writeback **block** symbols to IDA
-    * (2) `exportIDASymbol.py`: export **IDA** (`Functions` (include ObjC) + `Names` + `block`) symbols to json file
+    * (2) [`idaExportSymbol.py`](https://github.com/crifan/idaExportSymbol): export **IDA** (`Functions` (include ObjC) + `Names` + `block`) symbols to json file
     * (3) `restore-symbol`: **restore** all symbols for iOS Mach-O binary file
   * for anyone: no `IDA Pro`
     * `restore-symol` : restore (only) **ObjC** symbols
@@ -66,17 +66,8 @@ download from [releases](https://github.com/crifan/restore-symbol/releases/) (th
 ### (2) export **IDA** symbols (`Functions` + `Names`, and above **block** symbols) to json file
 
 * (2) export **IDA** symbols (`Functions`(inside include ObjC symbols) + `Names`, and above **block** symbols) to json file
-  * run `tools/IDAScripts/export_ida_symbol/exportIDASymbol.py` in IDA
-    * default config
-      * `isVerbose = False`: no verbose log
-        * change to `isVerbose = True` if you want see details
-      * `isExportToFile = True`: export final all symbols to json file
-      * `enableDemangleName = True`: for (`Functions` + `Names`) all symbol names, use demangle name if not None
-      * `outputFolder = None`: default output exported file to current folder of IDA opened Mach-O file
-        * set to your expected other folder if necessary
-  * Example
-    * WhatsApp
-      * ![ida_export_symbol_whatsapp](assets/img/ida_export_symbol_whatsapp.jpg)
+  * run [`idaExportSymbol.py`](https://github.com/crifan/idaExportSymbol) in IDA
+    * for details, refer to: [crifan/idaExportSymbol](https://github.com/crifan/idaExportSymbol)
   * Attention
     * makesure `IDA's image base` == `Mach-O vmaddr base` is same
       * Example
@@ -104,7 +95,7 @@ download from [releases](https://github.com/crifan/restore-symbol/releases/) (th
   * Example
     * WhatsApp
       ```bash
-      ./restore-symbol -w true -s false -j tools/IDAScripts/export_ida_symbol/output/WhatsApp_IDASymbols_FunctionsNames_20231129_223621.json -o test/WhatsApp/output/WhatsApp_mergedSymbols_20231129 test/WhatsApp/input/WhatsApp
+      ./restore-symbol -w true -s false -j WhatsApp_IDASymbols_FunctionsNames_20231129_223621.json -o test/WhatsApp/output/WhatsApp_mergedSymbols_20231129 test/WhatsApp/input/WhatsApp
       ```
         * ![restore_symbol_whatsapp](assets/img/restore_symbol_whatsapp.jpg)
 
@@ -118,7 +109,7 @@ restore-symbol -s true -o {outputFile_RestoredSymbol} {inputMachOFile}
 
 * Note
   * after `restore-symbol` restored ObjC symbol, there are some wrong symbol
-    * how to fix: use above (`exportIDASymbol.py` expored) **IDA** symbols
+    * how to fix: use above ([`idaExportSymbol.py`](https://github.com/crifan/idaExportSymbol) exported) **IDA** symbols
 
 ## More Usage Case
 
@@ -142,7 +133,7 @@ restore-symbol -s true -o {outputFile_RestoredSymbol} {inputMachOFile}
       ```
     * restore from imported json symbol file
       ```bash
-      restore-symbol test/WhatsApp/input/WhatsApp -s false -r true -j tools/IDAScripts/export_ida_symbol/output/WhatsApp_IDASymbols_FunctionsNames_20231130_104313.json -o test/WhatsApp/output/WhatsApp_restoredIdaAllSymbols_20231404
+      restore-symbol test/WhatsApp/input/WhatsApp -s false -r true -j WhatsApp_IDASymbols_FunctionsNames_20231130_104313.json -o test/WhatsApp/output/WhatsApp_restoredIdaAllSymbols_20231404
       ```
 
 ## Post step
@@ -154,9 +145,10 @@ after export IDA symbol, if you want automate whole process of repack ipa, you c
 ## Changelog
 
 * 20231115
-  * other updates for `exportIDASymbo.py`, `mergeSymbols.py`
+  * other updates for `mergeSymbols.py`
+  * `exportIDASymbol.py` moved to separate repo: [crifan/idaExportSymbol](https://github.com/crifan/idaExportSymbol)
 * 20231103
-  * add `tools/IDAScripts/export_ida_symbol/exportIDASymbol.py`
+  * add `exportIDASymbol.py` (now at [crifan/idaExportSymbol](https://github.com/crifan/idaExportSymbol))
     * to export IDA symbols
   * add `tools/mergeSymbols/mergeSymbols.py`
     * to merge all symbols from restore-symbol restored, exported from IDA functions list, scanned from IDA block
